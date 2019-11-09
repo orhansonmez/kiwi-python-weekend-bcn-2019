@@ -16,29 +16,33 @@ parser.add_argument("--departure_date")
 args = parser.parse_args()
 
 
-def find_city_with_name(name):
+def get_city_id(name):
     
+    id = redis.get('bcn_orhan:location:{}'.format(slugify(name, separator='_')))
+
+    if id is not None:
+        print('LOCATION CACHE HIT!')
+        return int(id)
+    
+    session = HTMLSession()
+    cities_response = session.get('https://d11mb9zho2u7hy.cloudfront.net/api/v1/cities?locale=en')
+    cities = json.loads(cities_response.content)['cities']
+
     for id in cities:
         city = cities[id]
         if slugify(city['name'], separator='_') == slugify(name, separator='_'):
-            return city
+            redis.set('bcn_orhan:location:{}'.format(slugify(name, separator='_')), city['id'])
+            return city['id']
     
     return None
 
-with open('cities.json') as json_file:
-    cities = json.load(json_file)
-
-city1 = find_city_with_name(args.source)
-city2 = find_city_with_name(args.destination)
-
-if city1 is None or city2 is None:
-    exit()
-
+source_id = get_city_id(args.source)
+destination_id = get_city_id(args.destination)
 
 departure_datetime = datetime.strptime(args.departure_date, "%Y-%m-%d")
 
 search_url = "https://shop.global.flixbus.com/search?departureCity={}&arrivalCity={}&route={}-{}&rideDate={}"\
-    .format(city1['id'], city2['id'], city1['name'], city2['name'], departure_datetime.strftime("%d.%m.%Y"))
+    .format(source_id, destination_id, args.source, args.destination, departure_datetime.strftime("%d.%m.%Y"))
 
 
 session = HTMLSession()    
