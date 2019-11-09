@@ -9,7 +9,7 @@
             "type": "python",
             "request": "launch",
             "program": "C:\\OneDrive\\Projects\\Hackathons\\kiwi-python-weekend-bcn-2019\\connections.py",
-            "args": ["Barcelona", "Madrid", "2019-11-10"]
+            "args": ["--source", "Barcelona", "--destination", "Madrid", "--departure_date", "2019-11-10"]
         },
         {
             "name": "Python: Current File",

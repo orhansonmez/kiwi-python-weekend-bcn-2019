@@ -1,14 +1,20 @@
 
 from requests_html import HTMLSession
+from datetime import datetime, timedelta
 from slugify import slugify
 import argparse
-from datetime import datetime, timedelta
 import json
 import sys
 
-source = sys.argv[1]
-destination = sys.argv[2]
-departure_date = sys.argv[3]
+from redis import StrictRedis
+redis = StrictRedis(socket_connect_timeout=3, **{'host': '34.77.218.145','port': 80})
+
+parser = argparse.ArgumentParser()
+parser.add_argument("--source")
+parser.add_argument("--destination")
+parser.add_argument("--departure_date")
+args = parser.parse_args()
+
 
 def find_city_with_name(name):
     
@@ -22,16 +28,18 @@ def find_city_with_name(name):
 with open('cities.json') as json_file:
     cities = json.load(json_file)
 
-city1 = find_city_with_name(source)
-city2 = find_city_with_name(destination)
+city1 = find_city_with_name(args.source)
+city2 = find_city_with_name(args.destination)
 
 if city1 is None or city2 is None:
     exit()
 
-departure_datetime = datetime.strptime(departure_date, "%Y-%m-%d")
+
+departure_datetime = datetime.strptime(args.departure_date, "%Y-%m-%d")
 
 search_url = "https://shop.global.flixbus.com/search?departureCity={}&arrivalCity={}&route={}-{}&rideDate={}"\
     .format(city1['id'], city2['id'], city1['name'], city2['name'], departure_datetime.strftime("%d.%m.%Y"))
+
 
 session = HTMLSession()    
 search_response = session.get(search_url)
@@ -61,3 +69,4 @@ for result in results:
     connections.append(connection)
 
 print(connections)
+redis.set('bcn_orhan:journey:{}_{}_{}'.format(slugify(args.source), slugify(args.destination), args.departure_date), json.dumps(connections))
