@@ -30,7 +30,12 @@ def get_city_id(name):
 
     for id in cities:
         city = cities[id]
+
         if slugify(city['name'], separator='_') == slugify(name, separator='_'):
+            redis.set('bcn_orhan:location:{}'.format(slugify(name, separator='_')), city['id'])
+            return city['id']
+        
+        if slugify(city['aliases'], separator='_') == slugify(name, separator='_'):
             redis.set('bcn_orhan:location:{}'.format(slugify(name, separator='_')), city['id'])
             return city['id']
     
@@ -40,6 +45,13 @@ source_id = get_city_id(args.source)
 destination_id = get_city_id(args.destination)
 
 departure_datetime = datetime.strptime(args.departure_date, "%Y-%m-%d")
+
+connections = redis.get('bcn_orhan:journey:{}_{}_{}'.format(slugify(args.source), slugify(args.destination), args.departure_date))
+
+if connections is not None:
+    print("JOURNEY CACHE HIT!")
+    print(connections)
+    exit()
 
 search_url = "https://shop.global.flixbus.com/search?departureCity={}&arrivalCity={}&route={}-{}&rideDate={}"\
     .format(source_id, destination_id, args.source, args.destination, departure_datetime.strftime("%d.%m.%Y"))
@@ -54,6 +66,9 @@ connections = []
 for result in results:
     connection = {}
     
+    connection['source'] = args.source
+    connection['destination'] = args.destination
+
     connection['departure_station'] = result.xpath('//div[@class="station-name departure-station-name"]/text()')[0]
     connection['arrival_station'] = result.xpath('//div[@class="station-name arrival-station-name"]/text()')[0]
 
