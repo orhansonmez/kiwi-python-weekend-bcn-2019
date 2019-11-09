@@ -10,6 +10,7 @@ pylint = "*"
 requests-html = "*"
 python-slugify = "*"
 redis = "*"
+flask = "*"
 
 [requires]
 python_version = "3.8"
