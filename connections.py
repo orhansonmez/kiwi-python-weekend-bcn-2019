@@ -5,9 +5,10 @@ from slugify import slugify
 import argparse
 import json
 import sys
+import os
 
 from redis import StrictRedis
-redis = StrictRedis(socket_connect_timeout=3, **{'host': '34.77.218.145','port': 80})
+redis = StrictRedis(socket_connect_timeout=3, **{'host': os.environ['HOST'],'port': os.environ['PORT']})
 
 parser = argparse.ArgumentParser()
 parser.add_argument("--source")
@@ -50,7 +51,7 @@ connections = redis.get('bcn_orhan:journey:{}_{}_{}'.format(slugify(args.source)
 
 if connections is not None:
     print("JOURNEY CACHE HIT!")
-    print(connections)
+    print(json.loads(connections))
     exit()
 
 search_url = "https://shop.global.flixbus.com/search?departureCity={}&arrivalCity={}&route={}-{}&rideDate={}"\
