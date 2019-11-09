@@ -78,7 +78,11 @@ for result in results:
     connection['departure_datetime'] = departure_datetime.strftime("%Y-%m-%d %H:%M")
 
     duration = result.xpath('//div[@class="col-xs-12 duration ride__duration ride__duration-messages"]/text()')[0].strip()
-    arrival_datetime = departure_datetime + timedelta(hours=int(duration.split(':')[0]),minutes=int(duration.split(':')[1]))
+    if len(duration.split(':')) == 1:
+        duration += ":00"
+    connection['duration'] = duration
+        
+    arrival_datetime = departure_datetime + timedelta(hours=int(duration.split(':')[0]), minutes=int(duration.split(':')[1]))
     connection['arrival_datetime'] = arrival_datetime.strftime("%Y-%m-%d %H:%M")
     # connection['arrival_time'] = result.xpath('//div[@class="arrival"]/text()')[0]
 
