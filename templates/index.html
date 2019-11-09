@@ -1,0 +1,71 @@
+<html>
+
+<head>
+    <title>BCN PY WKND</title>
+    <script src="https://unpkg.com/vue"></script>
+    <script src="https://unpkg.com/vuejs-datepicker"></script>
+    <script src="https://unpkg.com/axios/dist/axios.min.js"></script>
+    <link rel="stylesheet" href="https://cdn.rawgit.com/Chalarangelo/mini.css/v3.0.1/dist/mini-default.min.css">
+</head>
+
+<body>
+    <h1>Welcome to Barcelona Python Weekend!</h1>
+    {% raw %}
+    <div id="app">
+        <form>
+            <div class="row">
+                <label for="departure_date">Date</label>
+                <datepicker v-model="searchForm.departure_date"></datepicker>
+                <label for="source">From</label>
+                <input type="text" v-model="searchForm.source" placeholder="From" />
+                <label for="destination">To</label>
+                <input type="text" v-model="searchForm.destination" placeholder="To" />
+                <button @click.prevent="search">Search</button>
+            </div>
+        </form>
+        <div v-if="loading">
+            <img src="http://www.nps.tours/public/images/activity/loading.gif" alt="loading">
+        </div>
+        <div v-else class="row">
+            <ul>
+                <li v-for="result in searchResults" :key="result.departure_datetime">
+                    {{ result.source }} -> {{ result.destination }}, {{ result.departure_datetime }} , €{{ result.price }}
+                </li>
+            </ul>
+        </div>
+    </div>
+    {% endraw %}
+</body>
+
+<script>
+    const app = new Vue({
+        el: '#app',
+        data: {
+            loading: false,
+            searchForm: {
+                departure_date: new Date(2019, 10, 10),
+                source: 'Madrid',
+                destination: 'Sevilla'
+            },
+            searchResults: []
+        },
+        components: {
+            'datepicker': vuejsDatepicker
+        },
+        methods: {
+            search() {
+                this.loading = true
+                setTimeout(() => {
+                    axios
+                        .get('/search', { params: this.searchForm })
+                        .then(resp => {
+                            this.searchResults = resp.data.results
+                            this.loading = false
+                        })
+                }, 2000);
+            }
+        },
+    })
+</script>
+
+</html>
