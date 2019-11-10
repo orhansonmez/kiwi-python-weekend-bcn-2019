@@ -1,6 +1,5 @@
 from flask import Flask, request, jsonify, render_template
 import connections
-import dateutil.parser
 
 app = Flask(__name__)
 
